@@ -127,8 +127,8 @@ public class JavaMailUtil {
 				}
 				
 			});
-			
-			Message message = prepareMessage(session,emailId,recipient,subject,htmlTextMessage);
+			JavaMailUtilDataClass dataClass = new JavaMailUtilDataClass(session,emailId,recipient,subject,htmlTextMessage);
+			Message message = prepareMessage(dataClass);
 			
 			Transport.send(message);
 			
@@ -142,16 +142,16 @@ public class JavaMailUtil {
 		
 	}
 	
-	private static Message prepareMessage(Session session,String myAccountEmail, String recipientEmail, String subject , String htmlTextMessage) {
+	private static Message prepareMessage(JavaMailUtilDataClass dataClass) {
 		
 		try {
 			
-			Message message = new MimeMessage(session);
+			Message message = new MimeMessage(dataClass.getSession());
 			
-			message.setFrom(new InternetAddress(myAccountEmail));
-			message.setRecipient(Message.RecipientType.TO, new InternetAddress(recipientEmail));
-			message.setSubject(subject);
-			message.setContent(htmlTextMessage, "text/html");
+			message.setFrom(new InternetAddress(dataClass.getMyAccountEmail()));
+			message.setRecipient(Message.RecipientType.TO, new InternetAddress(dataClass.getRecipientEmail()));
+			message.setSubject(dataClass.getSubject());
+			message.setContent(dataClass.getHtmlTextMessage, "text/html");
 			return message;
 			
 		}
