@@ -24,91 +24,83 @@ public class LoginSrv extends HttpServlet {
     public LoginSrv() {
         super();
     }
+    
+    protected void loginAsAdmin(HttpServletRequest request, HttpServletResponse response, LoginInfo loginInfo) throws ServletException, IOException {
+    	if(loginInfo.getPassword().equals("Admin") && loginInfo.getUsername().equals("Admin")) {
+			//valid
+			
+			RequestDispatcher rd = request.getRequestDispatcher("adminViewProduct.jsp");
+			
+			HttpSession session = request.getSession();
+			
+			session.setAttribute("username", loginInfo.getUsername());
+			session.setAttribute("password", loginInfo.getPassword());
+			session.setAttribute("usertype", loginInfo.getUserType());
+			
+			
+			rd.forward(request, response);
 
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		
-		String userName = request.getParameter("username");
-		String password = request.getParameter("password");
-		String userType = request.getParameter("usertype");
-		
-		PrintWriter pw = response.getWriter();
-		
-		response.setContentType("text/html");
-		
-		String status = "Login Denied! Invalid Username or password.";
-		
-		if(userType.equals("admin")){  //Login as Admin
-			
-			if(password.equals("Admin") && userName.equals("Admin")) {
-				//valid
-				
-				RequestDispatcher rd = request.getRequestDispatcher("adminViewProduct.jsp");
-				
-				HttpSession session = request.getSession();
-				
-				session.setAttribute("username", userName);
-				session.setAttribute("password", password);
-				session.setAttribute("usertype", userType);
-				
-				
-				rd.forward(request, response);
-				
-				
-			}
-			else {
-				//Invalid;
-				RequestDispatcher rd = request.getRequestDispatcher("login.html");
-				
-				rd.include(request, response);
-				pw.println("<script>document.getElementById('message').innerHTML='"+status+"'</script>");
-			}
-			
 			
 		}
-		else {  //Login as customer
+		else {
+			//Invalid;
+			RequestDispatcher rd = request.getRequestDispatcher("login.html");
 			
-			 UserDaoImpl udao = new UserDaoImpl();
-			
-			 status = udao.isValidCredential(userName, password);
+			rd.include(request, response);
+			loginInfo.getPrintWriter().println("<script>document.getElementById('message').innerHTML='"+loginInfo.getStatus()+"'</script>");
+		}
+    }
+    
+    protected void loginAsUser(HttpServletRequest request, HttpServletResponse response, LoginInfo loginInfo) throws ServletException, IOException {
+    	UserDaoImpl udao = new UserDaoImpl();
+		
+		 status = udao.isValidCredential(userName, password);
+		 
+		 if(status.equalsIgnoreCase("valid")) {
+			 //valid user
 			 
-			 if(status.equalsIgnoreCase("valid")) {
-				 //valid user
-				 
-				 UserBean user = udao.getUserDetails(userName, password);
-				 
-				 HttpSession session = request.getSession();
-				 
-				 session.setAttribute("userdata", user);
-				 
-				 session.setAttribute("username", userName);
-				 session.setAttribute("password", password);
-				 session.setAttribute("usertype", userType);
-				 
-				 RequestDispatcher rd = request.getRequestDispatcher("userHome.jsp");
-				 
-				 rd.forward(request, response);
-				 
-			 }
-			 else {
-				 //invalid user;
-				 
-				RequestDispatcher rd = request.getRequestDispatcher("login.html");
-					
-				rd.include(request, response);
+			 UserBean user = udao.getUserDetails(userName, password);
+			 
+			 HttpSession session = request.getSession();
+			 
+			 session.setAttribute("userdata", user);
+			 
+			 session.setAttribute("username", loginInfo.getUsername());
+			 session.setAttribute("password", loginInfo.getPassword());
+			 session.setAttribute("usertype", loginInfo.getUserType());
+			 
+			 RequestDispatcher rd = request.getRequestDispatcher("userHome.jsp");
+			 
+			 rd.forward(request, response);
+			 
+		 }
+		 else {
+			 //invalid user;
+			 
+			RequestDispatcher rd = request.getRequestDispatcher("login.html");
 				
-				pw.println("<script>document.getElementById('message').innerHTML='"+status+"'</script>");
-				 
-				 
-			 }
+			rd.include(request, response);
 			
-		}
-		
-		
-	}
+			loginInfo.getPrintWriter().println("<script>document.getElementById('message').innerHTML='"+loginInfo.getStatus()+"'</script>");
+			 
+			 
+		 }
+    }
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
-		doGet(request, response);
+		
+		response.setContentType("text/html");
+		String status = "Login Denied! Invalid Username or password.";
+		
+		LoginInfo loginInfo = new LoginInfo(request.getParameter("username"), request.getParameter("password"),
+				request.getParameter("usertype"), response.getWriter(), status);
+		
+		if(userType.equals("admin")){  //Login as Admin
+			loginAsAdmin(request, response, loginInfo);
+		}
+		else {
+			loginAsUser(request, response, loginInfo);
+		}
 	}
 
 }
