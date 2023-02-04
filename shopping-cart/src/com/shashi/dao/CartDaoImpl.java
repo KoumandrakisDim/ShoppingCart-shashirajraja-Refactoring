@@ -35,39 +35,8 @@ public class CartDaoImpl implements CartDao{
 			
 			rs = ps.executeQuery();
 			
-			if(rs.next()) {
-				
-				int cartQuantity = rs.getInt("quantity");
-				
-				ProductBean product = new ProductDaoImpl().getProductDetails(prodId);
-				
-				int availableQty = product.getProdQuantity();
-				
-				prodQty += cartQuantity;
-				//
-				if(availableQty < prodQty) {
-					
-					status = updateProductToCart(userId, prodId, availableQty);
-					
-					status = "Only "+availableQty+" no of "+product.getProdName()+" are available in the shop! So we are adding only "+availableQty+" no of that item into Your Cart"
-							+ "";
-					
-					DemandBean demandBean = new DemandBean(userId,product.getProdId(),prodQty-availableQty);
-					
-					DemandDaoImpl demand = new DemandDaoImpl();
-					
-					boolean flag = demand.addProduct(demandBean);
-					
-					if(flag)
-						status += "<br/>Later, We Will Mail You when "+product.getProdName()+" will be available into the Store!";
-					
-					
-				}
-				else {
-					status = updateProductToCart(userId, prodId, prodQty);
-					
-				}
-			}
+			status = getStatusOfProduct(prodQty, rs, status);
+			
 			
 		} catch (SQLException e) {
 				status = "Error: "+ e.getMessage();
@@ -82,6 +51,43 @@ public class CartDaoImpl implements CartDao{
 		
 		return status;
 	}
+	
+	public String getStatusOfProduct(int prodQty, Resulset rs, String status) {
+        if (rs.next()) {
+
+            int cartQuantity = rs.getInt("quantity");
+
+            ProductBean product = new ProductDaoImpl().getProductDetails(prodId);
+
+            int availableQty = product.getProdQuantity();
+
+            prodQty += cartQuantity;
+            //
+            if (availableQty < prodQty) {
+
+                status = updateProductToCart(userId, prodId, availableQty);
+
+                status = "Only " + availableQty + " no of " + product.getProdName() + " are available in the shop! So we are adding only " + availableQty + " no of that item into Your Cart"
+                        + "";
+
+                DemandBean demandBean = new DemandBean(userId, product.getProdId(), prodQty - availableQty);
+
+                DemandDaoImpl demand = new DemandDaoImpl();
+
+                boolean flag = demand.addProduct(demandBean);
+
+                if (flag) {
+                    return status + "<br/>Later, We Will Mail You when " + product.getProdName() + " will be available into the Store!";
+                }
+
+                else {
+                    return updateProductToCart(userId, prodId, prodQty);
+
+                }
+            }
+        }
+        return "";
+    }
 
 	@Override
 	public List<CartBean> getAllCartItems(String userId) {
