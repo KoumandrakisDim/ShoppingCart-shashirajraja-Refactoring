@@ -1,2 +1,2 @@
 addProductToCart() in CartDaoImpl.java was refactored due to long method smell.
-Method extraction was used.
+Method extraction was used and getStatusOfProduct() was created.
