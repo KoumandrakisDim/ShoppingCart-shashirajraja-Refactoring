@@ -16,11 +16,10 @@ import com.shashi.utility.MailMessage;
 public class UserDaoImpl implements UserDao {
 
 	@Override
-	public String registerUser(String userName, Long mobileNo, String emailId, String address,int pinCode,
-			String password) {
+	public String registerUser(UserBean user) {
 		
 		
-		UserBean user = new UserBean(userName,mobileNo,emailId,address,pinCode,password);
+		UserBean user = new UserBean(user.getUserName(),user.getMobileNo(),user.getEmailId(),user.getPinCode(),user.getAddress(),user.getPassword());
 		
 		String status = registerUser(user);
 		
